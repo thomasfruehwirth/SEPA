@@ -155,7 +155,13 @@ public class SPARQL11Protocol implements Closeable {
 
 			// Body
 			responseEntity = httpResponse.getEntity();
-			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
+            if(responseCode == 204) { 
+                // in this case, the body is empty and responseEntity = null
+                // this is ok, but would result in an exception when creating the responseBody from the responseEntity
+                responseBody = "";
+            } else {
+                responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
+            }
 
 			logger.trace(String.format("Response code: %d", responseCode));
 
