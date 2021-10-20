@@ -45,6 +45,7 @@ class SchedulerQueue {
 	private final static LinkedBlockingQueue<ScheduledResponse> responses = new LinkedBlockingQueue<ScheduledResponse>();
 
 	public SchedulerQueue(long size) {
+	    tokens.clear();
 		// Initialize token jar
 		for (int i = 0; i < size; i++)
 			tokens.addElement(i);	

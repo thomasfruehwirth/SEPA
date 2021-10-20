@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.bean;
 import java.lang.management.ManagementFactory;
 
 import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -59,4 +60,21 @@ public class SEPABeans {
     	  logger.error(badMBean.getMessage());
       }
    }
+	
+	public static void unregisterMBean(final String mBeanObjectName,final Object mBean) {
+	    ObjectName name;
+        try {
+            name = new ObjectName(mBeanObjectName);
+            mbs.unregisterMBean(name);
+        } catch (MalformedObjectNameException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (MBeanRegistrationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InstanceNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+	}
 }
