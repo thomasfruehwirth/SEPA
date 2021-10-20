@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -31,11 +32,13 @@ import org.apache.mina.util.ConcurrentHashSet;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
-class GatesMonitor {
+public class GatesMonitor {
+    static AtomicBoolean closed = new AtomicBoolean(false);
+    
 	static {
 		Thread thread = new Thread() {
 			public void run() {
-				while (true) {
+				while (!closed.get()) {
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
@@ -196,5 +199,9 @@ class GatesMonitor {
 	public synchronized static long getNumberOfGates() {
 		return SUBSCRIPTIONS_HASH_MAP.size();
 
+	}
+	
+	public static void shutdown() {
+	    closed.set(true);
 	}
 }

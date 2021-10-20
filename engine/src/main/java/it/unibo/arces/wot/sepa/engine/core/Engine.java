@@ -28,6 +28,7 @@ import java.util.regex.PatternSyntaxException;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.jena.update.UpdateProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -46,6 +47,7 @@ import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityMonitor;
+import it.unibo.arces.wot.sepa.engine.dependability.GatesMonitor;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IsqlProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.JKSUtil;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapProperties;
@@ -54,6 +56,10 @@ import it.unibo.arces.wot.sepa.engine.gates.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.QueryHandler;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11Handler;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.UpdateHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
@@ -482,6 +488,7 @@ public class Engine implements EngineMBean {
 
 	public void shutdown() throws InterruptedException {
 		System.out.println("Stopping...");
+		
 
 		if (httpGate != null) {
 			System.out.println("Stopping HTTP gate...");
@@ -498,8 +505,33 @@ public class Engine implements EngineMBean {
 			wsServer.stop(wsShutdownTimeout);
 		}
 
-		System.out.println("Stopping Processor...");
+        if (processor != null) {
+            System.out.println("Stopping processor...");
+            processor.interrupt();
+        }
+        
+        if (scheduler != null) {
+            System.out.println("Stopping scheduler...");
+            scheduler.reset();
+            // scheduler.finish();
+            scheduler.interrupt();
+            // scheduler.notify();
+        }
+        
+        GatesMonitor.shutdown();
+
 		processor.interrupt();
+
+        SEPABeans.unregisterMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + DependabilityMonitor.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + Scheduler.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + "QueryProcessor", this);
+        SEPABeans.unregisterMBean("SEPA:type=" + UpdateProcessor.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + SPUManager.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + Processor.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + QueryHandler.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + UpdateHandler.class.getSimpleName(), this);
+        SEPABeans.unregisterMBean("SEPA:type=" + WebsocketServer.class.getSimpleName(), this);
 
 		System.out.println("Stopped...bye bye :-)");
 	}
